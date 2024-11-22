@@ -1,6 +1,8 @@
 import pygame
 import random
 import sys
+import json
+import os
 
 # Inicialização do Pygame
 pygame.init()
@@ -27,9 +29,25 @@ paddle_x = (WIDTH - PADDLE_WIDTH) // 2
 ball_x, ball_y = WIDTH // 2, HEIGHT - 30
 ball_dx, ball_dy = 7, -7
 score = 0
-high_score = 0
 level = 1
 lives = LIVES
+
+# Arquivo para salvar o HighScore
+HIGHSCORE_FILE = "highscore.json"
+
+def load_high_score():
+    if os.path.exists(HIGHSCORE_FILE):
+        with open(HIGHSCORE_FILE, "r") as file:
+            data = json.load(file)
+            return data.get("high_score", 0)
+    return 0
+
+def save_high_score(high_score):
+    with open(HIGHSCORE_FILE, "w") as file:
+        json.dump({"high_score": high_score}, file)
+
+# Carregar o HighScore inicial
+high_score = load_high_score()
 
 # Configuração dos blocos
 def create_bricks():
@@ -86,7 +104,8 @@ def check_collision():
                 ball_dy = -ball_dy
                 brick["status"] = 0
                 score += brick["points"]
-                high_score = max(high_score, score)
+                if score > high_score:
+                    high_score = score
                 if all(brick["status"] == 0 for row in bricks for brick in row):
                     level_up()
 
@@ -158,6 +177,9 @@ while running:
 
     pygame.display.flip()
     clock.tick(60)
+
+# Salvar o HighScore no arquivo ao sair
+save_high_score(high_score)
 
 pygame.quit()
 sys.exit()
